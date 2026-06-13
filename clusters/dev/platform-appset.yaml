@@ -1,0 +1,12 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-appset
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+        ref: feat/argocd-deployment
+        directories:
+          - platform/*
