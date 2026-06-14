@@ -1,0 +1,5 @@
+repo_url     = "https://github.com/hiagop22/gitops-aks-platform.git"
+repo_revision = "feat/argocd-deployment"
+cluster_name = "dev"
+namespace    = "argocd"
+argocd_helm_version = "9.5.19"
