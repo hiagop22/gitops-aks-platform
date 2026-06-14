@@ -11,7 +11,7 @@ resource "kubernetes_manifest" "root_app" {
       "source" = {
         "repoURL" = var.repo_url
         "targetRevision" = var.repo_revision
-        "path" = "clusters/${var.cluster_name}"
+        "path" = "bootstrap/${var.cluster_name}"
       }
       "destination" = {
         "server" = "https://kubernetes.default.svc"
