@@ -3,6 +3,8 @@ kind: ApplicationSet
 metadata:
   name: platform-appset
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   generators:
     - git:
@@ -14,9 +16,9 @@ spec:
   template:
     metadata:
       name: '{{path.basename}}'
-      namespace: dev
+      namespace: argocd
     spec:
-      project: default
+      project: nonprod
       source:
         repoURL: '{{.repoURL}}'
         targetRevision: '{{.revision}}'

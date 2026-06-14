@@ -251,3 +251,56 @@ To prevent unauthorised modifications to critical environment folders, you **mus
 /components/       @your-org/platform-engineers
 ```
 
+## Folder structure
+
+```text
+gitops-aks-platform/
+│
+├── bootstrap/                                 # Root sync folder for both ArgoCD instances
+│   ├── nonprod/                               # Bootstraps the NON‑PRODUCTION ArgoCD
+│   │   ├── projects/                          # AppProject definitions (sync-wave: -10)
+│   │   │   └── nonprod.yaml                   # Security boundary for dev, qa, staging
+│   │   └── appsets/                           # ApplicationSets (sync-wave: 0)
+│   │       └── nonprod-appset.yaml            # Generates infra + per‑env Applications
+│   └── prod/                                  # Bootstraps the PRODUCTION ArgoCD
+│       ├── projects/                          # AppProject definitions (sync-wave: -10)
+│       │   └── prod.yaml                      # Stricter security + manual sync
+│       └── appsets/                           # ApplicationSets (sync-wave: 0)
+│           └── prod-appset.yaml               # Generates prod workload Applications
+│
+├── clusters/                                  # Actual workload & infrastructure manifests
+│   ├── nonprod/                               # Referenced by nonprod-appset.yaml
+│   │   ├── infrastructure/                    # Cluster‑wide components (installed once)
+│   │   │   ├── istio/                         # Istio control plane (istio-system ns)
+│   │   │   ├── cert-manager/                  # Cluster cert manager
+│   │   │   └── observability/                 # Prometheus, Grafana, Loki (single instance)
+│   │   └── environments/                      # Per‑namespace workloads
+│   │       ├── dev/                           # Dev namespace manifests
+│   │       ├── qa/                            # QA namespace manifests
+│   │       └── staging/                       # Staging namespace manifests
+│   └── prod/                                  # Referenced by prod-appset.yaml
+│       ├── infrastructure/                    # (Optional) Prod‑specific cluster components
+│       └── environments/
+│           └── prod/                          # Prod namespace manifests
+│
+├── shared/                                    # Reusable Kustomize bases
+│   └── kustomize-bases/
+│       ├── your-app/                          # Base Deployment, Service, etc.
+│       └── istio/                             # Base patches (if needed)
+│
+└── terraform/                                 # Infrastructure as Code (separate from GitOps)
+    ├── modules/
+    │   └── argocd-bootstrap/                  # Reusable Terraform module
+    │       ├── main.tf                        # Installs ArgoCD + creates root Application
+    │       ├── variables.tf
+    │       ├── outputs.tf
+    │       └── versions.tf                    # Required providers and Terraform version
+    ├── nonprod/                               # Bootstraps non‑prod cluster
+    │   ├── main.tf                            # Calls module with bootstrap_path = "bootstrap/nonprod"
+    │   ├── terraform.tfvars                   # Values for nonprod (cluster_name = "nonprod", etc.)
+    │   └── backend.tf                         # (Optional) Remote state config
+    └── prod/                                  # Bootstraps prod cluster
+        ├── main.tf                            # Calls module with bootstrap_path = "bootstrap/prod"
+        ├── terraform.tfvars                   # Values for prod (cluster_name = "prod", manual sync)
+        └── backend.tf                         # (Optional) Remote state, ideally separate
+```
