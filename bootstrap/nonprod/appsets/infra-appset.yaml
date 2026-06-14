@@ -1,29 +1,30 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: env-appset
+  name: infra-appset
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   generators:
-    - list:
-        - env: dev
-          revision: feat/argocd-deployment
+    - git:
+        repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+        revision: feat/argocd-deployment
+        directories:
+          - path: clusters/nonprod/infrastructure/*
 
   template:
     metadata:
-      name: '{{env}}-workloads'
+      name: '{{path.basename}}'
       namespace: argocd
     spec:
       project: nonprod
       source:
-        repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+        path: '{{path}}'
         targetRevision: '{{.revision}}'
-        path: cluster/nonprod/environtments/{{env}}
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{env}}'
+        namespace: '{{path.basename}}'
       syncPolicy:
         automated:
           prune: true
