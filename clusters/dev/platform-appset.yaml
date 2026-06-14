@@ -9,7 +9,7 @@ spec:
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         revision: feat/argocd-deployment
         directories:
-          - platform/*
+          - path: platform/*
 
   template:
     metadata:
