@@ -17,12 +17,12 @@ resource "kubernetes_manifest" "root_app" {
         "server" = "https://kubernetes.default.svc"
         "namespace" = var.namespace
       }
-      "syncPolicy" = {
+      "syncPolicy" = var.enable_auto_sync ? {
         "automated" = {
-          "prune" = true
-          "selfHeal" = true
+          "prune"    = var.enable_prune
+          "selfHeal" = var.enable_self_heal
         }
-      }
+      } : null
     }
   }
 }

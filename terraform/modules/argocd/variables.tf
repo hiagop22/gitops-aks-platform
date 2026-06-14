@@ -17,3 +17,15 @@ variable "cluster_name" {
 variable "namespace" {
   type = string
 }
+
+variable "enable_auto_sync" {
+  type = bool
+}
+
+variable "enable_prune" {
+  type = bool
+}
+
+variable "enable_self_heal" {
+  type = bool
+}
