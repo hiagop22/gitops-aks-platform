@@ -6,6 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
+  goTemplate: true
   generators:
     - git:
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
@@ -15,17 +16,17 @@ spec:
 
   template:
     metadata:
-      name: '{{path.basename}}-app-project'
+      name: '{{.path.basename}}-app-project'
       namespace: argocd
     spec:
       project: 'default'
       source:
-        path: '{{path}}'
+        path: '{{.path}}'
         repoURL: '{{.repoURL}}'
         targetRevision: '{{.revision}}'
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{path.basename}}'
+        namespace: '{{.path.basename}}'
       syncPolicy:
         automated:
           prune: true
