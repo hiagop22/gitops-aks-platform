@@ -8,8 +8,9 @@ metadata:
 spec:
   generators:
     - list:
-        - env: dev
-          revision: feat/argocd-deployment
+        elements:
+          - env: dev
+            revision: feat/argocd-deployment
 
   template:
     metadata:
