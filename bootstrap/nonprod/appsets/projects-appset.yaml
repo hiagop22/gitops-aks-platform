@@ -1,24 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: infra-appset
+  name: projects-appset
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   generators:
     - git:
-        revision: refactor/secure-project-folders
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+        revision: refactor/secure-project-folders
         directories:
-          - path: clusters/nonprod/infrastructure/*
+          - path: bootstrap/nonprod/projects/overlays/*
 
   template:
     metadata:
-      name: '{{path.basename}}'
+      name: '{{path.basename}}-app-project'
       namespace: argocd
     spec:
-      project: nonprod
+      project: 'default'
       source:
         path: '{{path}}'
         repoURL: '{{.repoURL}}'

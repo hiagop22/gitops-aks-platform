@@ -3,8 +3,6 @@ kind: AppProject
 metadata:
   name: apps
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "-10"
 spec:
   description: "Non-production environment project"
   sourceRepos:

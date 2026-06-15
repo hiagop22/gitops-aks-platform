@@ -10,7 +10,7 @@ spec:
     - list:
         elements:
           - env: dev
-            revision: feat/argocd-deployment
+            revision: refactor/secure-project-folders
 
   template:
     metadata:
@@ -20,7 +20,7 @@ spec:
       project: '{{env}}-apps'
       source:
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
-        targetRevision: '{{.revision}}'
+        targetRevision: '{{revision}}'
         path: clusters/nonprod/environments/{{env}}
       destination:
         server: https://kubernetes.default.svc

@@ -256,17 +256,26 @@ To prevent unauthorised modifications to critical environment folders, you **mus
 ```text
 gitops-aks-platform/
 │
-├── bootstrap/                                 # Root sync folder for both ArgoCD instances
-│   ├── nonprod/                               # Bootstraps the NON‑PRODUCTION ArgoCD
-│   │   ├── projects/                          # AppProject definitions (sync-wave: -10)
-│   │   │   └── nonprod.yaml                   # Security boundary for dev, qa, staging
-│   │   └── appsets/                           # ApplicationSets (sync-wave: 0)
-│   │       └── nonprod-appset.yaml            # Generates infra + per‑env Applications
-│   └── prod/                                  # Bootstraps the PRODUCTION ArgoCD
-│       ├── projects/                          # AppProject definitions (sync-wave: -10)
-│       │   └── prod.yaml                      # Stricter security + manual sync
-│       └── appsets/                           # ApplicationSets (sync-wave: 0)
-│           └── prod-appset.yaml               # Generates prod workload Applications
+├── bootstrap/
+│   ├── nonprod/                               # Bootstraps the non-production ArgoCD
+│   │   ├── appsets/
+│   │   │   ├── env-appset.yaml                # Generates environment applications
+│   │   │   └── infra-appset.yaml              # Generates infrastructure applications
+│   │   │
+│   │   ├── projects/
+│   │   │   ├── base/
+│   │   │   │   ├── kustomization.yaml
+│   │   │   │   └── project.yaml              # Base AppProject definition
+│   │   │   │
+│   │   │   └── overlays/
+│   │   │       └── dev/
+│   │   │           ├── kustomization.yaml
+│   │   │           └── patch.yaml            # Environment-specific project settings
+│   │   │
+│   │   └── kustomization.yaml                # Root bootstrap entrypoint
+│   │
+│   └── prod/
+│       └── ...
 │
 ├── clusters/                                  # Actual workload & infrastructure manifests
 │   ├── nonprod/                               # Referenced by nonprod-appset.yaml
