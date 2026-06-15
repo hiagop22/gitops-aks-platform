@@ -21,9 +21,9 @@ spec:
     spec:
       project: nonprod
       source:
-        path: '{{.path}}'
-        repoURL: '{{.repoURL}}'
-        targetRevision: '{{.revision}}'
+        path: '{{.path.path}}'
+        repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+        targetRevision: refactor/secure-project-folders
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{.path.basename}}'
