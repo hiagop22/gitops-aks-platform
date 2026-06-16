@@ -3,8 +3,10 @@ kind: AppProject
 metadata:
   name: workloads
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
-  description: "Non-production environment project"
+  description: Worload services and namespace-wide components
   clusterResourceWhitelist:
     - group: ''
       kind: 'Namespace'
