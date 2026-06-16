@@ -21,7 +21,7 @@ spec:
     - namespace: external-secrets
       server: https://kubernetes.default.svc
 
-    - namespace: monitoring
+    - namespace: kube-prometheus-stack
       server: https://kubernetes.default.svc
 
     - namespace: envoy-gateway-system
