@@ -1,27 +1,3 @@
-# ----- Anchors -----
-x-common: &common
-  goTemplate: true
-  template:
-    metadata:
-      namespace: argocd
-    spec:
-      destination:
-        server: https://kubernetes.default.svc
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
-
-x-git-generator: &git-generator
-  repoURL: https://github.com/hiagop22/gitops-aks-platform.git
-  revision: refactor/secure-project-folders
-
-x-source: &source
-  repoURL: https://github.com/hiagop22/gitops-aks-platform.git
-  targetRevision: refactor/secure-project-folders
----
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -30,16 +6,34 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
+  # ----- Anchors -----
+  x-common: &common
+    goTemplate: true
+    template:
+      metadata:
+        namespace: argocd
+      spec:
+        destination:
+          server: https://kubernetes.default.svc
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+          syncOptions:
+            - CreateNamespace=true
+  
+  x-source: &source
+    repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+    targetRevision: refactor/secure-project-folders
+  
+  # ----- Actual spec -----
   <<: *common
   generators:
     - list:
         elements:
           - env: dev
-            revision: refactor/secure-project-folders
           - env: qa
-            revision: refactor/secure-project-folders
           - env: staging
-            revision: refactor/secure-project-folders
   template:
     metadata:
       name: '{{.env}}-apps'
@@ -48,11 +42,11 @@ spec:
       project: '{{.env}}-apps'
       source:
         <<: *source
-        targetRevision: '{{.revision}}'
         path: clusters/nonprod/environments/{{.env}}
       destination:
-        <<: *common.template.spec.destination
+        server: https://kubernetes.default.svc
         namespace: '{{.env}}'
+
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -65,7 +59,8 @@ spec:
   <<: *common
   generators:
     - git:
-        <<: *git-generator
+        repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+        revision: refactor/secure-project-folders
         directories:
           - path: clusters/nonprod/infrastructure/*
   template:
@@ -78,5 +73,5 @@ spec:
         <<: *source
         path: '{{.path.path}}'
       destination:
-        <<: *common.template.spec.destination
+        server: https://kubernetes.default.svc
         namespace: '{{.path.basename}}'
