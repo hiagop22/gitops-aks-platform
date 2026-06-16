@@ -1,32 +1,31 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: infra-appset
+  name: env-appset
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   goTemplate: true
   generators:
-    - git:
-        revision: refactor/secure-project-folders
-        repoURL: https://github.com/hiagop22/gitops-aks-platform.git
-        directories:
-          - path: clusters/nonprod/infrastructure/*
+    - list:
+        elements:
+          - env: dev
+            revision: refactor/secure-project-folders
 
   template:
     metadata:
-      name: '{{.path.basename}}'
+      name: '{{.env}}-apps'
       namespace: argocd
     spec:
-      project: nonprod
+      project: workloads
       source:
-        path: '{{.path.path}}'
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
-        targetRevision: refactor/secure-project-folders
+        targetRevision: '{{.revision}}'
+        path: clusters/nonprod/environments/{{.env}}
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{.path.basename}}'
+        namespace: '{{.env}}'
       syncPolicy:
         automated:
           prune: true

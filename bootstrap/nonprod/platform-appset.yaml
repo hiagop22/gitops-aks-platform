@@ -1,35 +1,40 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: projects-appset
+  name: platform-appset
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   goTemplate: true
   generators:
     - git:
-        repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         revision: refactor/secure-project-folders
+        repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         directories:
-          - path: bootstrap/nonprod/projects/env/overlays/*
+          - path: clusters/nonprod/infrastructure/*
 
   template:
     metadata:
-      name: '{{.path.basename}}-app-project'
+      name: '{{.path.basename}}'
       namespace: argocd
+
     spec:
-      project: 'default'
+      project: platform
+
       source:
         path: '{{.path.path}}'
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         targetRevision: refactor/secure-project-folders
+
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{.path.basename}}'
+
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
+
         syncOptions:
           - CreateNamespace=true
