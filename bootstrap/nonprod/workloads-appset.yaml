@@ -4,13 +4,17 @@ metadata:
   name: env-appset
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   goTemplate: true
   generators:
     - list:
         elements:
           - env: dev
+            revision: refactor/secure-project-folders
+          - env: qa
+            revision: refactor/secure-project-folders
+          - env: staging
             revision: refactor/secure-project-folders
 
   template:
@@ -22,7 +26,7 @@ spec:
       source:
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         targetRevision: '{{.revision}}'
-        path: clusters/nonprod/environments/{{.env}}
+        path: clusters/nonprod/workloads/overlays/{{.env}}
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{.env}}'
