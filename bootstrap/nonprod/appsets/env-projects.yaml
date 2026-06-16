@@ -12,7 +12,7 @@ spec:
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         revision: refactor/secure-project-folders
         directories:
-          - path: bootstrap/nonprod/projects/overlays/*
+          - path: bootstrap/nonprod/projects/env/overlays/*
 
   template:
     metadata:
