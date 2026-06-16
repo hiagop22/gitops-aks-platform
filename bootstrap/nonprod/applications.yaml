@@ -1,0 +1,82 @@
+# ----- Anchors -----
+x-common: &common
+  goTemplate: true
+  template:
+    metadata:
+      namespace: argocd
+    spec:
+      destination:
+        server: https://kubernetes.default.svc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+
+x-git-generator: &git-generator
+  repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+  revision: refactor/secure-project-folders
+
+x-source: &source
+  repoURL: https://github.com/hiagop22/gitops-aks-platform.git
+  targetRevision: refactor/secure-project-folders
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: env-appset
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  <<: *common
+  generators:
+    - list:
+        elements:
+          - env: dev
+            revision: refactor/secure-project-folders
+          - env: qa
+            revision: refactor/secure-project-folders
+          - env: staging
+            revision: refactor/secure-project-folders
+  template:
+    metadata:
+      name: '{{.env}}-apps'
+    spec:
+      <<: *common.template.spec
+      project: '{{.env}}-apps'
+      source:
+        <<: *source
+        targetRevision: '{{.revision}}'
+        path: clusters/nonprod/environments/{{.env}}
+      destination:
+        <<: *common.template.spec.destination
+        namespace: '{{.env}}'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: infra-appset
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  <<: *common
+  generators:
+    - git:
+        <<: *git-generator
+        directories:
+          - path: clusters/nonprod/infrastructure/*
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      <<: *common.template.spec
+      project: nonprod
+      source:
+        <<: *source
+        path: '{{.path.path}}'
+      destination:
+        <<: *common.template.spec.destination
+        namespace: '{{.path.basename}}'
