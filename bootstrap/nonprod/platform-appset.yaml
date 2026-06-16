@@ -9,7 +9,7 @@ spec:
   goTemplate: true
   generators:
     - git:
-        revision: feat/add-prometheus-stack
+        revision: feat/add-kube-prometheus-stack
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         directories:
           - path: clusters/nonprod/infrastructure/*
