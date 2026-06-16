@@ -31,7 +31,7 @@ spec:
     - namespace: envoy-gateway-system
       server: https://kubernetes.default.svc
 
-    - namespace: argocd
+    - namespace: kube-system
       server: https://kubernetes.default.svc
 
 
