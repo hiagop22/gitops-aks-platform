@@ -11,11 +11,11 @@ spec:
     - list:
         elements:
           - env: dev
-            revision: refactor/secure-project-folders
+            revision: HEAD
           - env: qa
-            revision: refactor/secure-project-folders
+            revision: HEAD
           - env: staging
-            revision: refactor/secure-project-folders
+            revision: HEAD
 
   template:
     metadata:

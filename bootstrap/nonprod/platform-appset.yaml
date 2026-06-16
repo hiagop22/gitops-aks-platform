@@ -9,7 +9,7 @@ spec:
   goTemplate: true
   generators:
     - git:
-        revision: refactor/secure-project-folders
+        revision: HEAD
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         directories:
           - path: clusters/nonprod/infrastructure/*
@@ -25,7 +25,7 @@ spec:
       source:
         path: '{{.path.path}}'
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
-        targetRevision: refactor/secure-project-folders
+        targetRevision: HEAD
 
       destination:
         server: https://kubernetes.default.svc
