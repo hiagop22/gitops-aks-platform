@@ -12,7 +12,7 @@ spec:
         revision: feat/add-kube-prometheus-stack
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         directories:
-          - path: clusters/nonprod/infrastructure/*
+          - path: clusters/nonprod/platform/*
 
   template:
     metadata:
@@ -25,7 +25,7 @@ spec:
       source:
         path: '{{.path.path}}'
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
-        targetRevision: HEAD
+        targetRevision: feat/add-kube-prometheus-stack
 
       destination:
         server: https://kubernetes.default.svc
