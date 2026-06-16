@@ -10,6 +10,7 @@ spec:
 
   sourceRepos:
     - https://github.com/hiagop22/gitops-aks-platform.git
+    - https://prometheus-community.github.io/helm-charts
 
   destinations:
     - namespace: istio-system
@@ -24,11 +25,16 @@ spec:
     - namespace: kube-prometheus-stack
       server: https://kubernetes.default.svc
 
+    - namespace: monitoring
+      server: https://kubernetes.default.svc
+
     - namespace: envoy-gateway-system
       server: https://kubernetes.default.svc
 
     - namespace: argocd
       server: https://kubernetes.default.svc
+
+
 
   clusterResourceWhitelist:
     - group: ""
