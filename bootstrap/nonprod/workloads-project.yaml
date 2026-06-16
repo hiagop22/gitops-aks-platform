@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: workloads
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  description: Worload services and namespace-wide components
+  clusterResourceWhitelist:
+    - group: ''
+      kind: 'Namespace'
+  namespaceResourceWhitelist:
+    - group: 'apps'
+      kind: 'Deployment'
+    - group: 'apps'
+      kind: 'StatefulSet'
+    - group: 'apps'
+      kind: 'DaemonSet'
+    - group: ''
+      kind: 'Service'
+    - group: 'networking.k8s.io'
+      kind: 'Ingress'
+    - group: ''
+      kind: 'ConfigMap'
+    - group: ''
+      kind: 'Secret'
+    - group: ''
+      kind: 'PersistentVolumeClaim'
+    - group: 'autoscaling'
+      kind: 'HorizontalPodAutoscaler'
+    - group: 'batch'
+      kind: 'Job'
+    - group: 'batch'
+      kind: 'CronJob'
+    - group: ''
+      kind: 'ServiceAccount'
+  sourceRepos:
+    - "https://github.com/hiagop22/gitops-aks-platform.git"
+  destinations:
+    - namespace: "dev"
+      server: https://kubernetes.default.svc
+    - namespace: "qa"
+      server: https://kubernetes.default.svc
+    - namespace: "staging"
+      server: https://kubernetes.default.svc

@@ -6,28 +6,33 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
+  goTemplate: true
   generators:
     - list:
         elements:
           - env: dev
-            revision: feat/argocd-deployment
+            revision: HEAD
+          - env: qa
+            revision: HEAD
+          - env: staging
+            revision: HEAD
 
   template:
     metadata:
-      name: '{{env}}-apps'
+      name: '{{.env}}-apps'
       namespace: argocd
     spec:
-      project: '{{env}}-apps'
+      project: workloads
       source:
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         targetRevision: '{{.revision}}'
-        path: clusters/nonprod/environments/{{env}}
+        path: clusters/nonprod/workloads/overlays/{{.env}}
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{env}}'
+        namespace: '{{.env}}'
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
-          syncOptions:
-            - CreateNamespace=true
+        syncOptions:
+          - CreateNamespace=true
