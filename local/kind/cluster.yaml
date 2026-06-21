@@ -4,13 +4,6 @@ name: gitops-aks-platform
 nodes:
   - role: control-plane
     image: kindest/node:v1.33.2
-    extraPortMappings:
-      - containerPort: 80
-        hostPort: 80
-        protocol: TCP
-      - containerPort: 443
-        hostPort: 443
-        protocol: TCP
   
   - role: worker
     image: kindest/node:v1.33.2

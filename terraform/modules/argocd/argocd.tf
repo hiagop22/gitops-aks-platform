@@ -14,7 +14,7 @@ resource "helm_release" "argocd" {
     version    = var.argocd_helm_version
     namespace  = var.namespace
     
-    create_namespace = true
+    create_namespace = false
     
     values = [
         yamlencode({

@@ -1,21 +1,24 @@
 # This file is maintained automatically by "terraform init".
 # Manual edits may be lost in future updates.
 
-provider "registry.terraform.io/argoproj-labs/argocd" {
-  version     = "7.15.3"
-  constraints = "~> 7.0"
+provider "registry.terraform.io/alekc/kubectl" {
+  version     = "2.4.1"
+  constraints = "~> 2.1"
   hashes = [
-    "h1:ZCIcaDzTy2WN2iaaMA9puR1khbGetdesJDYNEgshfZE=",
-    "zh:1a754d97259b9d2e9e624703eec655278bff20ca829b9d48ee9aae9591af2681",
-    "zh:3728ed3654f426d745d624d6895631651ebd8e84d594fe475849f2ad02c5c027",
-    "zh:4261e504831d8744de39e583a3b6931ced1ca6b67b2363448243197548cb6fd1",
-    "zh:57693d73351452ab6171d7cd929f41c666e7d6720ec57d2c5a9eb9081e6ba8d4",
-    "zh:67e23102766d21548b80ed484ac2173ce0ed94db89f3aa0fa7f1cde80f0179d5",
-    "zh:b2f7408bf945d8ad18b65574d036db4e742d600adc4270c6876fe19a5b62b464",
-    "zh:be4cdc723e4782655f79d125b7c67d84798c0ab450e37c4a8ca809027c92ccac",
-    "zh:c6c102f04d1873c1182502c10120411c344a1ee9af93b1d8086e7e28696c0689",
-    "zh:c8797aef8ed8d548a17cda9ddfc321231c73654d37b43c7e3e5d3e096544fa7d",
-    "zh:cc64b231c45c638448b9e1b8a8dd67b8430d2c5f1401123cc114676efca5e9e4",
+    "h1:oFhUB/LqtnraVc/XUSCSuy/4h/g6e3AtGkS6XADieaQ=",
+    "zh:00a27c51a6f1082f20cbee52e0b996e4bed1dbc90de682cc309618aee2857e35",
+    "zh:16f94d63152a8a7c637fa3c609a104416272565b7a9b620e3b895ddb9912e288",
+    "zh:18a5c663c2aa6e673d75650d27888f1f91894f46d504fbf4a87f045c96f7afc1",
+    "zh:1a7c76db49ec94c0669baa6e416007f76acf09dbd141ef20036e4e13840651d7",
+    "zh:2baf0f93ff27fa0ff7265ee9eed5cc773311ace3bf936eb72bfbbd579d436894",
+    "zh:3ea7f773485b08ed55eedd29a7c83988c91ba2cc346b2436e7d1347ab061625a",
+    "zh:4bb3a241078f7b62dc41e9ac156c83b628933248b76cee3ec0d0264c0a2a25b7",
+    "zh:57571e1d9230fbde986a265228e17662eeb5ec63c12b84742564d453ad21f955",
+    "zh:6e1b82fde0037368a9e156304a580364ef926f26ffe235bb5a67b4c9f2edc2c4",
+    "zh:9dec7ed91b39d9815d9c37b78eca0327f631c66b2bcc61cbb4212c6d2ec76a22",
+    "zh:a347aebd398769c35ed2d3169025a7a11c1937d94efead7a7bee212aabba1c73",
+    "zh:b74e24ec0e2e176ee6cc18f33ac7e3609cfd6ca377b49cbd64b0f36edbb54342",
+    "zh:f6844cf7ead4443638dfdb3f837481585f4a4c910bcf7b030a19820cc5109ebc",
   ]
 }
 
