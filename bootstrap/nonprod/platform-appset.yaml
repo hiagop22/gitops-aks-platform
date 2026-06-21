@@ -12,7 +12,7 @@ spec:
         revision: HEAD
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         directories:
-          - path: clusters/nonprod/infrastructure/*
+          - path: clusters/nonprod/platform/*
 
   template:
     metadata:
@@ -38,3 +38,4 @@ spec:
 
         syncOptions:
           - CreateNamespace=true
+          - ServerSideApply=true
