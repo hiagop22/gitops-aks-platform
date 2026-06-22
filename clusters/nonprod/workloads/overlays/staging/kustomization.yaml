@@ -4,4 +4,3 @@ namespace: staging
 
 resources:
 - ../../base/microservice1
-- ../../base/microservice2

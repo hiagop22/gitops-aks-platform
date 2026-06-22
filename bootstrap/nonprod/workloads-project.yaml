@@ -35,6 +35,10 @@ spec:
       kind: 'CronJob'
     - group: ''
       kind: 'ServiceAccount'
+    - group: 'policy'
+      kind: 'PodDisruptionBudget'
+    - group: 'networking.k8s.io'
+      kind: 'NetworkPolicy'
   sourceRepos:
     - "https://github.com/hiagop22/gitops-aks-platform.git"
   destinations:

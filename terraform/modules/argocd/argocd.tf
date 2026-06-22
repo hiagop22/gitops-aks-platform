@@ -23,6 +23,11 @@ resource "helm_release" "argocd" {
                     type = "ClusterIP"
                 }
             }
+            configs = {
+                cm = {
+                    "kustomize.buildOptions" = "--enable-helm"
+                }
+            }
         })
     ]
 

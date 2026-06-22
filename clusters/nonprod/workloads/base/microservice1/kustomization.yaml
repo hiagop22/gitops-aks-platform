@@ -1,0 +1,24 @@
+namespace: microservice1
+
+resources:
+  - namespace.yaml
+
+helmCharts:
+  - name: nginx
+    repo: https://charts.bitnami.com/bitnami
+    version: 18.2.6
+    releaseName: nginx
+    namespace: microservice1
+    valuesInline:
+      service:
+        type: ClusterIP
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+      metrics:
+        enabled: false

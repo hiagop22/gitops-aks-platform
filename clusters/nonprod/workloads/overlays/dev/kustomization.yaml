@@ -4,4 +4,3 @@ namespace: dev
 
 resources:
 - ../../base/microservice1
-- ../../base/microservice2
