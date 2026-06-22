@@ -11,11 +11,11 @@ spec:
     - list:
         elements:
           - env: dev
-            revision: feature/security-baseline
+            revision: HEAD
           - env: qa
-            revision: feature/security-baseline
+            revision: HEAD
           - env: staging
-            revision: feature/security-baseline
+            revision: HEAD
 
   template:
     metadata:
