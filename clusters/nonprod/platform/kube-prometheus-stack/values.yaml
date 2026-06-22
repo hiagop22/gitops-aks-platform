@@ -1,6 +1,23 @@
 grafana:
   enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
 
 prometheus:
   prometheusSpec:
-    retention: 15d
+    retention: 7d
+    retentionSize: 20GB
+    scrapeInterval: 1m
+    evaluationInterval: 1m
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi

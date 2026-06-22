@@ -34,6 +34,18 @@ spec:
     - namespace: kube-system
       server: https://kubernetes.default.svc
 
+    - namespace: namespace-policies
+      server: https://kubernetes.default.svc
+
+    - namespace: dev
+      server: https://kubernetes.default.svc
+    
+    - namespace: qa
+      server: https://kubernetes.default.svc
+    
+    - namespace: staging
+      server: https://kubernetes.default.svc
+
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
