@@ -3,8 +3,8 @@ kind: Kustomization
 
 helmCharts:
   - name: nginx
-    repo: https://charts.bitnami.com/bitnami
-    version: 18.2.6
+    repo: oci://registry-1.docker.io/bitnamicharts
+    version: 25.0.9
     releaseName: nginx
     valuesInline:
       service:
