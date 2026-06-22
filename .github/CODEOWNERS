@@ -1,0 +1,28 @@
+# ============================================================
+# EVERYONE DEFAULT - Platform team owns everything
+# ============================================================
+# * @platform-admins
+
+* @hiagop22
+
+# ============================================================
+# WORKLOADS - Developers can also modify these
+# ============================================================
+# clusters/*/workloads/       @dev-team
+
+clusters/*/workloads/       @hiagop22
+
+# ============================================================
+# EVERYTHING ELSE - Platform team only
+# ============================================================
+# /terraform/                 @your-org/platform-team
+# /bootstrap/                 @your-org/platform-team
+# /clusters/*/platform/       @your-org/platform-team
+# /.github/                   @your-org/platform-team
+# local/                      @your-org/platform-team
+
+/terraform/                 @hiagop22
+/bootstrap/                 @hiagop22
+/clusters/*/platform/       @hiagop22
+/.github/                   @hiagop22
+local/                      @hiagop22
