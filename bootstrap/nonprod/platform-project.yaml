@@ -34,6 +34,9 @@ spec:
     - namespace: kube-system
       server: https://kubernetes.default.svc
 
+    - namespace: namespace-policies
+      server: https://kubernetes.default.svc
+
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
