@@ -3,9 +3,9 @@ name: istio
 description: Istio service mesh for AKS platform
 type: application
 version: 1.0.0
-appVersion: 1.21.0
+appVersion: 1.30.2
 
 dependencies:
   - name: istiod
-    version: 1.21.0
+    version: 1.30.2
     repository: https://istio-release.storage.googleapis.com/charts
