@@ -3,3 +3,4 @@ kind: Kustomization
 namespace: qa
 resources:
 - ../../base
+- namespace.yaml
