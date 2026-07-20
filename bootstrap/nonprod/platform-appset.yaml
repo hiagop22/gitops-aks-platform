@@ -11,25 +11,27 @@ spec:
     - git:
         revision: feature/platform-istio
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
-        directories:
-          - path: clusters/nonprod/platform/*
+        files:
+          - path: clusters/nonprod/platform/**/app.yaml
 
   template:
     metadata:
-      name: '{{.path.basename}}'
+      name: '{{ .path.basename }}'
       namespace: argocd
+      annotations:
+        argocd.argoproj.io/sync-wave: '{{.syncWave}}'
 
     spec:
       project: platform
 
       source:
-        path: '{{.path.path}}'
+        path: '{{ .path.path }}'
         repoURL: https://github.com/hiagop22/gitops-aks-platform.git
         targetRevision: feature/platform-istio
 
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{.path.basename}}'
+        namespace: '{{ .destinationNamespace | default .path.basename }}'
 
       syncPolicy:
         automated:
