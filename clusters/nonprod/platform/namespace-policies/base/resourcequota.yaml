@@ -4,9 +4,9 @@ metadata:
   name: namespace-quota
 spec:
   hard:
-    requests.cpu: "100m"
+    requests.cpu: "500m"
     requests.memory: "1Gi"
-    limits.cpu: "200m"
+    limits.cpu: "1"
     limits.memory: "2Gi"
     pods: "20"
     configmaps: "20"
