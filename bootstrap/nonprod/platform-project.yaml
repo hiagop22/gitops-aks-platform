@@ -13,13 +13,7 @@ spec:
     - https://prometheus-community.github.io/helm-charts
 
   destinations:
-    - namespace: istio-base
-      server: https://kubernetes.default.svc
-
-    - namespace: istiod
-      server: https://kubernetes.default.svc
-    
-    - namespace: istio-ingress
+    - namespace: istio-system
       server: https://kubernetes.default.svc
 
     - namespace: cert-manager

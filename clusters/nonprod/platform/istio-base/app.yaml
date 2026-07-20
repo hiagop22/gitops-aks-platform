@@ -1,3 +1,2 @@
-name: istio-base
 destinationNamespace: istio-system
 syncWave: "-2"
