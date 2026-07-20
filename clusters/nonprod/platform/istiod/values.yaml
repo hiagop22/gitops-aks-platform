@@ -1,5 +1,13 @@
 global:
   istioNamespace: istio-system
+  proxy:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
 
 pilot:
   replicaCount: 2
