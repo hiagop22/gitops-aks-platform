@@ -1,99 +1,432 @@
 # gitops-aks-platform
 
-GitOps-driven AKS/Kubernetes platform built with Terraform, ArgoCD, Helm, and Kustomize. Terraform bootstraps a single ArgoCD instance per environment; everything after that is reconciled from Git.
+GitOps-driven AKS/Kubernetes platform built with Terraform, ArgoCD, Helm, Kustomize, and Istio.
 
-Only the `nonprod` environment is implemented today. `bootstrap/prod/` and `clusters/prod/` exist as empty placeholders for future work.
+Terraform bootstraps a single ArgoCD instance per environment. From that point onward, ArgoCD owns the desired state of the cluster and continuously reconciles everything from Git.
 
-## Architecture
+Currently only the **`nonprod`** environment is implemented. `bootstrap/prod/` and `clusters/prod/` exist as placeholders for future production deployment.
 
-**Layer 1 — Terraform (`terraform/`)**
-Bootstraps ArgoCD: installs the `argo-cd` Helm chart and creates a single root `Application` that points at `bootstrap/<cluster_name>` in this same repo. It does not manage application state beyond that.
+---
 
-**Layer 2 — GitOps (`bootstrap/`, `clusters/`)**
-Once the root `Application` exists, ArgoCD takes over:
-- `bootstrap/<env>/platform-appset.yaml` — `ApplicationSet` using a git **directory generator** over `clusters/<env>/platform/*`. Each subdirectory found there becomes its own `Application` automatically.
-- `bootstrap/<env>/workloads-appset.yaml` — `ApplicationSet` using a **list generator** with hardcoded environments (`dev`, `qa`, `staging`).
-- `bootstrap/<env>/platform-project.yaml` / `workloads-project.yaml` — `AppProject`s scoping what each `ApplicationSet` may deploy. `platform` is broad (cluster-scoped resources, CRDs, namespaces); `workloads` is deliberately narrow (namespace-scoped app resources only, restricted to `dev`/`qa`/`staging`).
+# Architecture
 
-## Repository structure
+## Layer 1 — Terraform (`terraform/`)
+
+Terraform is responsible only for bootstrapping GitOps by:
+
+- Creating the `argocd` namespace
+- Installing the ArgoCD Helm chart
+- Creating a single root `Application` pointing to `bootstrap/<environment>`
+
+Terraform does **not** manage applications after ArgoCD has been installed.
+
+---
+
+## Layer 2 — GitOps (`bootstrap/`, `clusters/`)
+
+Once the root `Application` exists, ArgoCD becomes the source of truth for the cluster.
+
+The bootstrap layer contains:
+
+- **`platform-appset.yaml`**
+  - Uses a **Git directory generator**
+  - Automatically discovers every directory under:
+    ```
+    clusters/<env>/platform/*
+    ```
+  - Every directory becomes an independent ArgoCD Application.
+
+- **`workloads-appset.yaml`**
+  - Uses a **List generator**
+  - Deploys workload overlays for:
+    - `dev`
+    - `qa`
+    - `staging`
+
+- **AppProjects**
+  - `platform-project`
+    - Cluster-wide permissions
+    - CRDs
+    - Namespaces
+    - Infrastructure components
+  - `workloads-project`
+    - Namespace-scoped only
+    - Restricted to workload namespaces
+    - Prevents developers from modifying cluster infrastructure
+
+---
+
+# Repository structure
 
 ```text
 gitops-aks-platform/
-├── terraform/                       # Bootstraps ArgoCD (per environment)
-│   ├── main.tf                      # Calls module "argocd"
-│   ├── variables.tf / providers.tf / versions.tf
-│   ├── environment/nonprod/         # terraform.tfvars, backend.tf
-│   └── modules/argocd/
-│       ├── argocd.tf                # argocd namespace + Helm release
-│       ├── applications.tf          # Root Application (kubectl_manifest)
-│       ├── variables.tf
-│       └── versions.tf
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── providers.tf
+│   ├── versions.tf
+│   ├── environment/
+│   │   └── nonprod/
+│   │       ├── backend.tf
+│   │       └── terraform.tfvars
+│   └── modules/
+│       └── argocd/
+│           ├── argocd.tf
+│           ├── applications.tf
+│           ├── variables.tf
+│           └── versions.tf
 │
 ├── bootstrap/
 │   ├── nonprod/
-│   │   ├── platform-appset.yaml     # Directory generator -> clusters/nonprod/platform/*
-│   │   ├── platform-project.yaml    # Broad AppProject for platform components
-│   │   ├── workloads-appset.yaml    # List generator -> dev/qa/staging
-│   │   └── workloads-project.yaml   # Narrow AppProject for app workloads
-│   └── prod/                        # Placeholder (not implemented)
+│   │   ├── platform-appset.yaml
+│   │   ├── platform-project.yaml
+│   │   ├── workloads-appset.yaml
+│   │   └── workloads-project.yaml
+│   └── prod/
 │
 ├── clusters/
 │   ├── nonprod/
-│   │   ├── platform/                # One folder per cluster-wide component (auto-discovered)
-│   │   │   ├── istio/
+│   │   ├── platform/
+│   │   │   ├── istio-base/
+│   │   │   ├── istiod/
+│   │   │   ├── istio-ingress/
 │   │   │   ├── kube-prometheus-stack/
-│   │   │   └── namespace-policies/  # ResourceQuota/LimitRange/RBAC per workload namespace
+│   │   │   └── namespace-policies/
 │   │   │       ├── base/
-│   │   │       └── overlays/{dev,qa,staging}/
-│   │   └── workloads/                # Developer-owned app manifests
-│   │       ├── base/microservice1/
-│   │       └── overlays/{dev,qa,staging}/
-│   └── prod/                        # Placeholder (not implemented)
+│   │   │       └── overlays/
+│   │   │           ├── dev/
+│   │   │           ├── qa/
+│   │   │           └── staging/
+│   │   │
+│   │   └── workloads/
+│   │       ├── base/
+│   │       └── overlays/
+│   │           ├── dev/
+│   │           ├── qa/
+│   │           └── staging/
+│   └── prod/
 │
-├── local/kind/cluster.yaml           # Kind cluster config for local development
-└── .github/CODEOWNERS                # Enforces the ownership boundary below
+├── local/
+│   └── kind/
+│       └── cluster.yaml
+│
+└── .github/
+    └── CODEOWNERS
 ```
 
-## Ownership boundary
+---
 
-Developers are only meant to touch `clusters/<env>/workloads/` (app manifests/overlays). Everything else — `bootstrap/`, `clusters/<env>/platform/`, `terraform/` — is admin-only, enforced via `.github/CODEOWNERS`.
+# Ownership boundary
 
-Namespace-scoped guardrails (`ResourceQuota`/`LimitRange`/`Role`/`RoleBinding`) live under `platform/namespace-policies/`, not under `workloads/` — putting them in the dev-writable tree would let a workload change loosen its own constraints.
+Platform engineers own:
 
-## Common commands
+- Terraform
+- Bootstrap configuration
+- Platform components
+- Namespaces
+- Istio
+- Observability
+- RBAC
+- ResourceQuota
+- LimitRange
+
+Application developers own only:
+
+```text
+clusters/<env>/workloads/
+```
+
+Everything else is administrator-managed and protected through
+`.github/CODEOWNERS`.
+
+Namespace guardrails such as:
+
+- ResourceQuota
+- LimitRange
+- Role
+- RoleBinding
+
+are intentionally stored under:
+
+```text
+clusters/<env>/platform/namespace-policies/
+```
+
+instead of the workload tree so that application teams cannot relax their own constraints.
+
+---
+
+# Istio architecture
+
+Istio is deployed as **three independent platform components**.
+
+| Component | Purpose |
+|-----------|---------|
+| `istio-base` | CRDs and cluster-scoped resources |
+| `istiod` | Service mesh control plane |
+| `istio-ingress` | Ingress Gateway |
+
+Namespaces join the mesh through:
+
+```yaml
+metadata:
+  labels:
+    istio-injection: enabled
+```
+
+This label is managed centrally from `platform/namespace-policies`, not by application manifests.
+
+---
+
+# Sidecar injection
+
+```text
+Developer
+      │
+      ▼
+Deployment
+      │
+      ▼
+Namespace
+(istio-injection=enabled)
+      │
+      ▼
+Mutating Admission Webhook
+      │
+      ▼
+Pod
+├── Application
+└── Envoy Sidecar
+        │
+        ▼
+      istiod
+```
+
+---
+
+# Envoy configuration model
+
+Istio distributes configuration to Envoy proxies using the xDS APIs.
+
+| xDS | Purpose | Inspect with |
+|------|----------|--------------|
+| LDS | Listeners | `istioctl proxy-config listeners` |
+| RDS | HTTP Routes | `istioctl proxy-config routes` |
+| CDS | Upstream Clusters | `istioctl proxy-config clusters` |
+| EDS | Service Endpoints | `istioctl proxy-config endpoints` |
+
+When debugging service mesh traffic, inspect the generated Envoy configuration before assuming Kubernetes networking is the issue.
+
+---
+
+# Common commands
+
+## Terraform
 
 ```bash
-# Terraform: plan/apply the nonprod ArgoCD bootstrap (run from terraform/)
 terraform init
-terraform plan  -var-file=environment/nonprod/terraform.tfvars
-terraform apply -var-file=environment/nonprod/terraform.tfvars
 
-# Local cluster for development (Kind)
-kind create cluster --config local/kind/cluster.yaml
+terraform plan \
+  -var-file=environment/nonprod/terraform.tfvars
 
-# Validate/dry-run a Kustomize overlay or platform component without applying
-kubectl apply --dry-run=server -k clusters/nonprod/workloads/overlays/dev
-kubectl kustomize --enable-helm clusters/nonprod/platform/istio
-
-# Render a platform Helm release locally for review
-helm template <release> <chart> -f clusters/nonprod/platform/<component>/values.yaml
+terraform apply \
+  -var-file=environment/nonprod/terraform.tfvars
 ```
 
-## Adding things
+## Local Kind cluster
 
-- **New platform component**: add a new directory under `clusters/nonprod/platform/` — auto-discovered by `platform-appset.yaml`'s git directory generator, no other changes needed.
-- **New workload environment** (beyond dev/qa/staging): update the `list` generator in `bootstrap/nonprod/workloads-appset.yaml` *and* add a matching `clusters/nonprod/workloads/overlays/<newenv>/`.
-- **New workload**: add a base under `clusters/nonprod/workloads/base/<name>/` and reference it from each overlay that should run it.
+```bash
+kind create cluster --config local/kind/cluster.yaml
+```
 
-## Production readiness (roadmap, not yet implemented)
+## Validate workloads
 
-`bootstrap/prod/` and `clusters/prod/` are empty placeholders. Before any production workload runs through this setup, plan for:
+```bash
+kubectl apply \
+  --dry-run=server \
+  -k clusters/nonprod/workloads/overlays/dev
+```
 
-1. **Manual sync for production** — disable `syncPolicy.automated` for prod Applications; require pipeline- or human-mediated approval to sync.
-2. **RBAC + SSO/OIDC** — authenticate every access to the production ArgoCD instance (Dex/OIDC), no shared admin credentials, and scope `AppProject` roles per team.
-3. **Secrets out of Git** — the production cluster's credentials must be injected via Terraform/secret manager at bootstrap time, never committed.
-4. **Audit logging** — ship ArgoCD audit logs (syncs, logins, config changes) to a central SIEM.
-5. **Monitoring & alerting** — alert on `argocd_app_sync_status`, `argocd_app_health_status`, and `argocd_app_repo_connection_status` via the ArgoCD Prometheus metrics endpoint.
-6. **Backup & DR** — back up the `argocd` namespace (e.g. with Velero) before any major change, stored in a separate region/account, with a documented restore runbook.
-7. **Prune protection** — annotate critical resources with `argocd.argoproj.io/sync-options: Prune=false` (or `PrunePropagationPolicy=foreground/orphan`) so they're never deleted automatically.
-8. **Folder-based promotion** — promote changes `dev → qa → staging → prod` via PRs that copy manifests between environment folders, with CI validation at each stage and manual approval required for the `prod` PR.
+## Render platform components
+
+```bash
+kubectl kustomize \
+  --enable-helm \
+  clusters/nonprod/platform/istiod
+```
+
+or
+
+```bash
+helm template <release> <chart> \
+  -f clusters/nonprod/platform/<component>/values.yaml
+```
+
+## Verify sidecar injection
+
+```bash
+kubectl get pod <pod> \
+  -o jsonpath='{.spec.containers[*].name}'
+```
+
+## Check namespace labels
+
+```bash
+kubectl get ns --show-labels
+```
+
+## Restart workloads after enabling injection
+
+```bash
+kubectl rollout restart deployment <deployment> \
+  -n <namespace>
+```
+
+## Verify proxies connected to istiod
+
+```bash
+istioctl proxy-status
+```
+
+## Inspect Envoy configuration
+
+```bash
+istioctl proxy-config listeners <pod> -n <namespace>
+
+istioctl proxy-config routes <pod> -n <namespace>
+
+istioctl proxy-config clusters <pod> -n <namespace>
+
+istioctl proxy-config endpoints <pod> -n <namespace>
+```
+
+## Validate Istio configuration
+
+```bash
+istioctl analyze
+```
+
+---
+
+# Adding new components
+
+## Add a new platform component
+
+Create a new directory under:
+
+```text
+clusters/nonprod/platform/
+```
+
+The Git directory generator automatically creates a new ArgoCD Application.
+
+No additional configuration is required.
+
+---
+
+## Add a new workload
+
+Create a base under:
+
+```text
+clusters/nonprod/workloads/base/<application>/
+```
+
+Then reference it from the desired environment overlays.
+
+---
+
+## Add a new environment
+
+1. Update the List generator inside:
+
+```text
+bootstrap/nonprod/workloads-appset.yaml
+```
+
+2. Create:
+
+```text
+clusters/nonprod/workloads/overlays/<environment>/
+```
+
+---
+
+# Troubleshooting checklist
+
+1. Verify `istiod` is running.
+2. Verify the namespace has `istio-injection=enabled`.
+3. Restart Deployments after labeling namespaces.
+4. Confirm Pods contain `istio-proxy`.
+5. Check `istioctl proxy-status`.
+6. Inspect listeners, routes, clusters, and endpoints.
+7. Run `istioctl analyze`.
+
+---
+
+# Learning roadmap
+
+1. Sidecar injection
+2. Kubernetes Services
+3. Service discovery
+4. VirtualService
+5. DestinationRule
+6. Ingress Gateway
+7. mTLS
+8. AuthorizationPolicy
+9. Kubernetes Gateway API
+10. Ambient mode
+
+---
+
+# Production roadmap
+
+The `prod` environment is intentionally left as a placeholder. Before deploying production workloads, the following improvements should be implemented.
+
+1. **Manual synchronization**
+   - Disable automatic sync for production Applications.
+   - Require pipeline or human approval before deployments.
+
+2. **SSO / OIDC**
+   - Integrate ArgoCD with an identity provider.
+   - Remove shared administrator credentials.
+   - Define AppProject roles per team.
+
+3. **Secrets outside Git**
+   - Inject production credentials during Terraform bootstrap.
+   - Use a secrets manager instead of storing secrets in Git.
+
+4. **Audit logging**
+   - Export ArgoCD audit logs to a centralized SIEM.
+
+5. **Monitoring and alerting**
+   - Monitor:
+     - `argocd_app_sync_status`
+     - `argocd_app_health_status`
+     - `argocd_app_repo_connection_status`
+
+6. **Backup and disaster recovery**
+   - Back up the `argocd` namespace (e.g. using Velero).
+   - Store backups in a separate region/account.
+   - Maintain a documented restore procedure.
+
+7. **Prune protection**
+   - Protect critical resources using:
+
+```yaml
+argocd.argoproj.io/sync-options: Prune=false
+```
+
+or appropriate prune propagation policies.
+
+8. **Git-based promotion**
+   - Promote changes:
+
+```
+dev → qa → staging → prod
+```
+
+through Pull Requests with automated validation and manual approval before production.
+
+9. **Gateway API migration**
+   - Replace the Istio Ingress Gateway with the Kubernetes Gateway API when appropriate.
