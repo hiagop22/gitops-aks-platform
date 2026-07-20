@@ -1,0 +1,103 @@
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+
+
+# global:
+#   meshID: mesh1
+#   imagePullPolicy: IfNotPresent
+
+#   multiCluster:
+#     enabled: false
+
+#   network: network-default
+
+# base:
+#   validation:
+#     enabled: true
+
+#   crds:
+#     enabled: true
+
+# istiod:
+#   enabled: true
+#   ambient: true
+
+#   replicaCount: 1
+
+#   resources:
+#     requests:
+#       cpu: 500m
+#       memory: 512Mi
+#     limits:
+#       cpu: 2000m
+#       memory: 2Gi
+
+#   tracing:
+#     enabled: true
+
+#   meshConfig:
+#     accessLogFile: /dev/stdout
+#     accessLogEncoding: TEXT
+
+#   defaultConfig:
+#     tracing:
+#       sampling: 1.0
+#     proxyMetadata:
+#       ISTIO_META_DNS_CAPTURE: "true"
+#       ISTIO_META_DNS_AUTO_ALLOCATE: "true"
+
+#   enablePrometheusMerge: true
+
+#   outboundTrafficPolicy:
+#     mode: ALLOW_ANY
+
+# gateway:
+#   enabled: true
+#   replicaCount: 2
+
+#   resources:
+#     requests:
+#       cpu: 100m
+#       memory: 128Mi
+#     limits:
+#       cpu: 500m
+#       memory: 512Mi
+
+#   service:
+#     type: ClusterIP
+    
+#     ports:
+#       - port: 80
+#         targetPort: 8080
+#         protocol: TCP
+#         name: http
+#       - port: 443
+#         targetPort: 8443
+#         protocol: TCP
+#         name: https
+
+#   autoscaling:
+#     enabled: true
+#     minReplicas: 2
+#     maxReplicas: 5
+#     targetCPUUtilizationPercentage: 80
+
+# prometheus:
+#   enabled: true
+  
+#   useExisting: true
+#   existingPrometheus: prometheus-operated
+
+# grafana:
+#   enabled: true
+#   useExisting: true
+#   existingGrafana: grafana
+
+# cni:
+#   enabled: true
+#   ambient: 
+#     enabled: true
+
+# ztunnel:
+#   enabled: true
