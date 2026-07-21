@@ -1,6 +1,6 @@
 apiVersion: v2
 name: istio
-description: Istio service mesh for AKS platform
+description: Istio control
 type: application
 version: 1.0.0
 appVersion: 1.30.2
