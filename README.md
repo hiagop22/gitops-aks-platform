@@ -166,6 +166,16 @@ Istio is deployed as **three independent platform components**.
 | `istiod` | Service mesh control plane |
 | `istio-ingress` | Ingress Gateway |
 
+The components are installed in dependency order:
+
+```text
+istio-base
+    ↓
+istiod
+    ↓
+istio-ingress
+```
+
 Namespaces join the mesh through:
 
 ```yaml
@@ -175,6 +185,49 @@ metadata:
 ```
 
 This label is managed centrally from `platform/namespace-policies`, not by application manifests.
+
+The `istio-ingress` namespace should normally **not** have sidecar injection enabled because the ingress gateway is already an Envoy proxy and does not require an additional sidecar.
+
+---
+
+# ArgoCD sync waves
+
+ArgoCD sync waves define the relative installation order of resources that are synchronized together.
+
+The platform uses the following order:
+
+| Sync wave | Component | Namespace |
+|---:|---|---|
+| `-2` | `istio-base` | `istio-system` |
+| `-1` | `istiod` | `istio-system` |
+| `0` | `istio-ingress` | `istio-ingress` |
+| `1` | Shared `Gateway` resources | `istio-ingress` |
+| `2` | Application `VirtualService` resources | Workload namespace |
+
+Example platform Application values:
+
+```yaml
+# istio-base
+destinationNamespace: istio-system
+syncWave: "-2"
+```
+
+```yaml
+# istiod
+destinationNamespace: istio-system
+syncWave: "-1"
+```
+
+```yaml
+# istio-ingress
+destinationNamespace: istio-ingress
+syncWave: "0"
+```
+
+Negative waves are valid. There is no requirement for workload routes to use wave `0`; the values only define relative ordering.
+
+> Important: sync waves order resources within the same ArgoCD synchronization operation. They do not create a permanent runtime dependency between independently synchronized ArgoCD Applications.
+
 
 ---
 
@@ -200,6 +253,206 @@ Pod
         │
         ▼
       istiod
+```
+
+The injected Envoy sidecar receives configuration from `istiod` and handles service-mesh traffic for the application container.
+
+---
+
+# Istio ingress model
+
+Ingress traffic is handled by three separate layers:
+
+```text
+Internet
+   │
+   ▼
+istio-ingress
+Envoy Deployment + Kubernetes Service
+   │
+   ▼
+Gateway
+Accepted ports, protocols, and hosts
+   │
+   ▼
+VirtualService
+Routing rules and destination Services
+   │
+   ▼
+Kubernetes Service
+   │
+   ▼
+Application Pods
+```
+
+## `istio-ingress`
+
+`istio-ingress` is the actual runtime infrastructure that receives external traffic.
+
+It consists primarily of:
+
+- A Kubernetes `Deployment` running Envoy gateway pods
+- A Kubernetes `Service` exposing those pods
+- A `LoadBalancer` Service on AKS
+- A `NodePort` or locally mapped Service when running with Kind
+
+Without this component, there is no ingress Envoy proxy available to receive traffic from outside the cluster.
+
+Example runtime resources:
+
+```text
+istio-ingressgateway Deployment
+istio-ingressgateway LoadBalancer Service
+```
+
+On AKS, the `LoadBalancer` Service receives an external IP from Azure.
+
+---
+
+## `Gateway`
+
+An Istio `Gateway` tells the ingress Envoy proxy which traffic it may accept.
+
+It defines:
+
+- Listening ports
+- Protocols
+- Hostnames
+- TLS configuration
+
+Example:
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: shared-gateway
+  namespace: istio-ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - app.example.com
+```
+
+This configuration means:
+
+```text
+Accept HTTP traffic
+on port 80
+for app.example.com
+```
+
+The `Gateway` defines the entry point but does not define the destination application.
+
+Shared `Gateway` resources are platform-managed and should normally be stored under:
+
+```text
+clusters/<env>/platform/istio-ingress/
+```
+
+---
+
+## `VirtualService`
+
+A `VirtualService` defines how traffic accepted by a `Gateway` is routed to Kubernetes Services.
+
+It may match requests by:
+
+- Host
+- URI path
+- HTTP headers
+- HTTP method
+- Query parameters
+- Traffic percentage
+
+Example:
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: backend
+  namespace: dev
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  hosts:
+    - app.example.com
+  gateways:
+    - istio-ingress/shared-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api
+      route:
+        - destination:
+            host: backend.dev.svc.cluster.local
+            port:
+              number: 8080
+```
+
+This configuration means:
+
+```text
+Requests to:
+
+http://app.example.com/api
+
+are routed to:
+
+backend.dev.svc.cluster.local:8080
+```
+
+Application-specific `VirtualService` resources may be stored under:
+
+```text
+clusters/<env>/workloads/overlays/<environment>/
+```
+
+The referenced gateway uses the format:
+
+```text
+<gateway-namespace>/<gateway-name>
+```
+
+For example:
+
+```yaml
+gateways:
+  - istio-ingress/shared-gateway
+```
+
+---
+
+# Complete ingress request flow
+
+Suppose a client sends:
+
+```text
+http://app.example.com/api/users
+```
+
+The request follows this path:
+
+```text
+1. Azure Load Balancer receives the external request.
+2. The Kubernetes LoadBalancer Service forwards it to an ingress Envoy pod.
+3. The Gateway checks:
+   - Was the request received on an allowed port?
+   - Does the Host header match app.example.com?
+4. The VirtualService checks:
+   - Does the request path start with /api?
+5. Envoy routes the request to:
+   backend.dev.svc.cluster.local:8080
+6. The Kubernetes Service selects one of the backend Pods.
 ```
 
 ---
